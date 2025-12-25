@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSDM '24 Wrapped | Cinematic SS Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root { --maroon: #800000; --gold: #c5a059; }
+        body { background-color: #050505; color: white; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Film Grain & Particles */
+        .overlay-fx {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100;
+            background: url('https://grainy-gradients.vercel.app/noise.svg');
+            opacity: 0.04; pointer-events: none;
+        }
+        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+        .ember {
+            position: absolute; background: var(--maroon); border-radius: 50%;
+            filter: blur(1.5px); opacity: 0; animation: floatUp 12s infinite linear;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(110vh) translateX(0); opacity: 0; }
+            20% { opacity: 0.4; }
+            100% { transform: translateY(-10vh) translateX(40px); opacity: 0; }
+        }
+
+        /* Cinematic Background */
+        .cinematic-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; }
+        .cinematic-bg img {
+            position: absolute; width: 100%; height: 100%; object-fit: cover;
+            filter: brightness(0.25) contrast(1.1);
+            opacity: 0; animation: kenBurns 28s infinite;
+        }
+        @keyframes kenBurns {
+            0% { opacity: 0; transform: scale(1); }
+            5% { opacity: 1; }
+            25% { opacity: 1; transform: scale(1.1) translate(1%, 1%); }
+            30% { opacity: 0; }
+            100% { opacity: 0; }
+        }
+        .cinematic-bg img:nth-child(1) { animation-delay: 0s; }
+        .cinematic-bg img:nth-child(2) { animation-delay: 7s; }
+        .cinematic-bg img:nth-child(3) { animation-delay: 14s; }
+        .cinematic-bg img:nth-child(4) { animation-delay: 21s; }
+
+        /* Progress Bar */
+        .prog-container { position: fixed; top: 0; left: 0; width: 100%; padding: 20px 15px; z-index: 200; display: flex; gap: 6px; }
+        .prog-seg { height: 3px; background: rgba(255,255,255,0.1); flex: 1; border-radius: 10px; overflow: hidden; }
+        .prog-fill { height: 100%; background: linear-gradient(90deg, var(--maroon), var(--gold)); width: 0%; transition: width 0.4s ease; box-shadow: 0 0 10px var(--maroon); }
+
+        /* Slides */
+        .slide { display: none; height: 100vh; width: 100%; align-items: center; justify-content: center; text-align: center; padding: 25px; }
+        .slide.active { display: flex; flex-direction: column; animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Polaroid 3.0: No-Crop untuk Proker */
+        .polaroid-proker {
+            background: #0a0a0a; padding: 12px 12px 50px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            max-width: 90vw; /* Agar tidak melewati layar HP */
+        }
+        .polaroid-proker img {
+            width: auto; height: auto;
+            max-height: 65vh; /* Batasi tinggi agar teks di bawah tetap kelihatan */
+            max-width: 100%;
+            object-fit: contain; /* KUNCI: Tidak dicrop */
+            display: block;
+        }
+
+        /* Mentor Polaroid: Spesial SS */
+        .polaroid-mentor {
+            background: #0a0a0a; padding: 10px 10px 45px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+            transition: all 0.7s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .polaroid-mentor img { width: 260px; height: 340px; object-fit: cover; }
+
+        /* Efek SS Mentor: Foto naik sedikit, pesan di bawah */
+        .active-msg .polaroid-wrap { transform: translateY(-120px) scale(0.8); }
+        .active-msg .msg-container { opacity: 1; transform: scale(1) translateY(140px); pointer-events: all; }
+        
+        .msg-container { 
+            position: absolute; opacity: 0; transform: scale(0.9) translateY(200px); 
+            transition: all 0.7s cubic-bezier(0.19, 1, 0.22, 1);
+            max-width: 400px; width: 90%; z-index: 10; pointer-events: none;
+        }
+
+        .glass-card {
+            background: rgba(20, 0, 0, 0.85); backdrop-filter: blur(15px);
+            border: 1px solid var(--maroon); border-radius: 24px;
+            padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+    .text-gold-gradient { 
+    background: linear-gradient(135deg, #fff 40%, var(--gold) 100%); 
+    /* Tambahkan dua baris ini */
+    background-clip: text; 
+    -webkit-background-clip: text; 
+    color: transparent; 
+}
+        .text-outline { -webkit-text-stroke: 1px rgba(255,255,255,0.5); color: transparent; }
+    </style>
+</head>
+<body>
+
+    <div class="overlay-fx"></div>
+    <div class="particles" id="emberContainer"></div>
+
+    <div class="cinematic-bg">
+        <img src="src/Foto-Ramai/bukber.jpeg">
+        <img src="src/Foto-Ramai/famgath.jpeg">
+        <img src="src/Foto-Ramai/wisuda2.jpeg">
+        <img src="src/Foto-Ramai/sikrab1.jpeg">
+    </div>
+
+    <div class="prog-container" id="progBar"></div>
+
+    <div id="landing" class="flex flex-col items-center justify-center h-screen z-50 relative px-6 text-center">
+        <span class="text-[var(--gold)] font-bold tracking-[0.6em] text-[10px] uppercase mb-6 block animate__animated animate__fadeInDown">The Official Archive</span>
+        <h1 class="text-8xl md:text-[10rem] font-black tracking-tighter leading-none mb-2 italic text-outline">PSDM</h1>
+        <h1 class="text-7xl md:text-9xl font-black tracking-tighter leading-none mb-12 text-gold-gradient">'24 WRAPPED</h1>
+        <button onclick="start()" class="bg-white text-black px-12 py-5 rounded-full font-black uppercase tracking-widest hover:scale-105 transition shadow-[0_0_30px_rgba(255,255,255,0.3)] text-xs">Buka Memori</button>
+    </div>
+
+    <div id="content" class="hidden">
+        
+        <div class="slide active">
+            <h2 class="text-5xl md:text-7xl font-black mb-6">Satu Periode.<br><span class="text-gold-gradient italic">Ribuan Cerita.</span></h2>
+            <p class="text-white/40 tracking-[0.4em] uppercase text-[10px] font-bold">Perjalanan PSDM Angkatan 2024</p>
+        </div>
+
+        <div class="slide">
+            <h2 class="text-3xl font-bold mb-12 tracking-tight">PSDM '24.</h2>
+            <div class="grid grid-cols-2 gap-5 max-w-sm w-full">
+                <div class="glass-card !p-6 col-span-2 border-white/5">
+                    <h3 class="text-5xl font-black text-[var(--gold)]">∞</h3>
+                    <p class="text-[9px] uppercase opacity-60 font-bold mt-2 tracking-widest">Kenangan semasa Proker HMJMI</p>
+                </div>
+                <div class="glass-card !p-6 border-white/5 text-center">
+                    <h3 class="text-3xl font-black text-white">1 Periode</h3>
+                    <p class="text-[9px] uppercase opacity-60 font-bold mt-2 tracking-widest text-center">Hari Berproses</p>
+                </div>
+                <div class="glass-card !p-6 border-white/5">
+                    <h3 class="text-3xl font-black text-gold-gradient italic">∞</h3>
+                    <p class="text-[9px] uppercase opacity-60 font-bold mt-2 tracking-widest">Tak Terlupa</p>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const prokers = [
+                {n: "BAKSOMI", f: "baksomi.jpeg"}, {n: "BUKBER", f: "bukber.jpeg"},
+                {n: "FAMGATH", f: "famgath.jpeg"}, {n: "SIKRAB", f: "sikrab1.jpeg"}
+            ];
+            prokers.forEach((p, i) => {
+                const tilt = i % 2 === 0 ? '-2deg' : '2deg';
+                document.write(`
+                <div class="slide">
+                    <div class="polaroid-proker" style="transform: rotate(${tilt})">
+                        <img src="src/Foto-Ramai/${p.f}">
+                        <div class="flex justify-between items-center mt-5 px-1">
+                            <p class="text-white/90 font-black italic text-xl tracking-tighter uppercase">${p.n}</p>
+                            <p class="text-[var(--gold)] text-[10px] font-bold tracking-widest">2025</p>
+                        </div>
+                    </div>
+                </div>`);
+            });
+        </script>
+
+        <div class="slide">
+            <h1 class="text-5xl font-black tracking-tighter italic leading-tight uppercase">Untuk<br><span class="text-gold-gradient">Kakak-Kakak PSDM'24</span></h1>
+        </div>
+
+        <script>
+            const mentors = [
+                {n: "Kak Paan", i: "Kak-Paan.png", msg: "Terima kasih Kak Paan sudah membimbing kami dengan sabar. Arahanmu adalah pondasi bagi kami!"},
+                {n: "Kak Sinab", i: "Kak-Isnab.png", msg: "Untuk Kak Sinab, terima kasih atas dedikasinya. Semangatmu selalu menular kepada kami!"},
+                {n: "Kak Liza", i: "Kak-Liza.png", msg: "Terima kasih Kak Liza atas keceriaannya. Kehadiranmu membuat PSDM jauh lebih hangat!"},
+                {n: "Kak Ridho", i: "Kak-Ridodo.png", msg: "Kepada Kak Ridho, terima kasih sudah menjadi sosok yang bisa diandalkan. Ilmu darimu sangat berharga!"},
+                {n: "Kak Nanda", i: "Kak-Nandalemon.png", msg: "Terima kasih Kak Nanda! Masukanmu selalu membuka sudut pandang baru yang luar biasa."},
+                {n: "Kak Yoga", i: "Bos-Agoy.png", msg: "Untuk Kak Yoga, terima kasih atas kepemimpinan yang keren. Sukses untuk langkah selanjutnya!"},
+                {n: "Kak Ayu", i: "Kak-Ayu.png", msg: "Terima kasih Kak Ayu atas ketelitiannya. Kami belajar banyak tentang tanggung jawab darimu!"},
+                {n: "Kak Sopi", i: "Kak-Sup.png", msg: "Terima kasih Kak Sopii! Masukanmu yang tepat sasaran selalu membantu kami berkembang."},
+                {n: "Kak Dika", i: "Bos-Dika.png", msg: "Kepada Kak Dika, terima kasih atas bimbingannya. Mentor yang luar biasa bagi kami semua!"},
+                {n: "Kak Aul", i: "Kak-Aul.png", msg: "Terima kasih Kak Aul atas bantuannya. Kakak selalu punya cara untuk menyemangati kami!"},
+                {n: "Kak Nopal", i: "Bos-Gopal.png", msg: "Untuk Kak Nopal, terima kasih atas kerja kerasnya. Pengalamanmu adalah bekal hebat bagi kami!"}
+            ];
+
+            mentors.forEach(m => {
+                document.write(`
+                <div class="slide mentor-slide">
+                    <div class="polaroid-wrap transition-all duration-700">
+                        <div class="polaroid-mentor">
+                            <img src="src/Foto-Angkatan-24/${m.i}">
+                        </div>
+                        <h2 class="text-3xl font-black mt-8 text-white tracking-tighter uppercase italic">${m.n}</h2>
+                    </div>
+                    <div class="msg-container">
+                        <div class="glass-card">
+                            <p class="text-lg italic font-medium leading-relaxed text-white/90">"${m.msg}"</p>
+                            <div class="mt-8 flex items-center justify-center gap-3">
+                                <div class="h-[1px] w-10 bg-[var(--gold)]"></div>
+                                <p class="text-[9px] font-bold tracking-[0.4em] uppercase text-[var(--gold)]">PSDM '25</p>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="click-hint mt-8 text-[9px] text-[var(--gold)] font-bold uppercase tracking-[0.5em] animate-pulse">Ketuk untuk pesan</p>
+                </div>`);
+            });
+        </script>
+
+        <div class="slide" id="lastSlide">
+            <div class="animate__animated animate__heartBeat animate__infinite">
+                <h1 class="text-7xl font-black italic text-outline mb-2">PSDM</h1>
+                <h1 class="text-7xl font-black italic text-gold-gradient">MANTAP JIWA!</h1>
+            </div>
+            <p class="mt-12 text-white/30 max-w-xs text-[10px] tracking-[0.3em] uppercase">Terima kasih Kakak-kakak PSDM '24 atas dedikasi dan kenangannya.</p>
+            <button onclick="location.reload()" class="mt-20 text-[9px] font-black border-b-2 border-[var(--gold)] pb-1 text-[var(--gold)] tracking-[0.6em] uppercase">Ulangi Perjalanan</button>
+        </div>
+    </div>
+
+    <script>
+        // System: Cinematic Embers
+        const container = document.getElementById('emberContainer');
+        for (let i = 0; i < 25; i++) {
+            const ember = document.createElement('div');
+            ember.className = 'ember';
+            const size = Math.random() * 3 + 2 + 'px';
+            ember.style.width = size; ember.style.height = size;
+            ember.style.left = Math.random() * 100 + 'vw';
+            ember.style.animationDelay = Math.random() * 10 + 's';
+            container.appendChild(ember);
+        }
+
+        let cur = 0; let isMsg = false;
+        const slides = document.querySelectorAll('.slide');
+        
+        slides.forEach(() => {
+            const seg = document.createElement('div');
+            seg.className = 'prog-seg';
+            seg.innerHTML = '<div class="prog-fill"></div>';
+            document.getElementById('progBar').appendChild(seg);
+        });
+
+        function start() {
+            document.getElementById('landing').classList.add('animate__animated', 'animate__fadeOut');
+            setTimeout(() => {
+                document.getElementById('landing').style.display = 'none';
+                document.getElementById('content').classList.remove('hidden');
+                updateProg();
+            }, 500);
+        }
+
+        function updateProg() {
+            document.querySelectorAll('.prog-fill').forEach((f, i) => {
+                f.style.width = i <= cur ? '100%' : '0%';
+            });
+        }
+
+        window.onclick = (e) => {
+            if(document.getElementById('content').classList.contains('hidden') || e.target.tagName === 'BUTTON') return;
+            
+            const active = slides[cur];
+            if(active.classList.contains('mentor-slide') && !isMsg) {
+                active.classList.add('active-msg');
+                active.querySelector('.click-hint').style.display = 'none';
+                isMsg = true;
+            } else {
+                if(cur < slides.length - 1) {
+                    slides[cur].classList.remove('active', 'active-msg');
+                    cur++;
+                    slides[cur].classList.add('active');
+                    isMsg = false;
+                    updateProg();
+
+                    if(slides[cur].id === 'lastSlide') {
+                        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#800000', '#c5a059', '#ffffff'] });
+                    }
+                }
+            }
+        };
+    </script>
+</body>
+</html>
