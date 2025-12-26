@@ -316,28 +316,58 @@
             });
         }
 
-        window.onclick = (e) => {
-            if(document.getElementById('content').classList.contains('hidden') || e.target.tagName === 'BUTTON') return;
-            
-            const active = slides[cur];
-            if(active.classList.contains('mentor-slide') && !isMsg) {
-                active.classList.add('active-msg');
-                active.querySelector('.click-hint').style.display = 'none';
-                isMsg = true;
-            } else {
-                if(cur < slides.length - 1) {
-                    slides[cur].classList.remove('active', 'active-msg');
-                    cur++;
-                    slides[cur].classList.add('active');
-                    isMsg = false;
-                    updateProg();
+       window.onclick = (e) => {
+    // Abaikan jika masih di landing page atau mengklik tombol "Buka Memori" / "Ulangi"
+    if(document.getElementById('content').classList.contains('hidden') || e.target.tagName === 'BUTTON') return;
+    
+    const screenWidth = window.innerWidth;
+    const clickX = e.clientX;
+    const active = slides[cur];
 
-                    if(slides[cur].id === 'lastSlide') {
-                        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#800000', '#c5a059', '#ffffff'] });
-                    }
+    // LOGIKA KLIK KIRI (BACK) - Area 30% layar ke kiri
+    if (clickX < screenWidth * 0.3) {
+        if (isMsg) {
+            // Jika sedang buka pesan mentor, tutup pesannya dulu
+            active.classList.remove('active-msg');
+            active.querySelector('.click-hint').style.display = 'block';
+            isMsg = false;
+        } else if (cur > 0) {
+            // Kembali ke slide sebelumnya
+            slides[cur].classList.remove('active', 'active-msg');
+            cur--;
+            slides[cur].classList.add('active');
+            isMsg = false; // Reset status pesan
+            updateProg();
+        }
+    } 
+    // LOGIKA KLIK KANAN (NEXT) - Area 70% layar ke kanan
+    else {
+        if(active.classList.contains('mentor-slide') && !isMsg) {
+            // Tampilkan pesan mentor
+            active.classList.add('active-msg');
+            active.querySelector('.click-hint').style.display = 'none';
+            isMsg = true;
+        } else {
+            // Lanjut ke slide berikutnya
+            if(cur < slides.length - 1) {
+                slides[cur].classList.remove('active', 'active-msg');
+                cur++;
+                slides[cur].classList.add('active');
+                isMsg = false;
+                updateProg();
+
+                if(slides[cur].id === 'lastSlide') {
+                    confetti({ 
+                        particleCount: 150, 
+                        spread: 70, 
+                        origin: { y: 0.6 }, 
+                        colors: ['#800000', '#c5a059', '#ffffff'] 
+                    });
                 }
             }
-        };
+        }
+    }
+};
     </script>
 </body>
 </html>
